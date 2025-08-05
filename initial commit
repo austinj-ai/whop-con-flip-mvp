@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Whop Coin Flip</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <h1>Coin Flip Game</h1>
+  <div id="coin">?</div>
+  <button id="flipBtn">Flip Coin ($1)</button>
+  <p id="result"></p>
+  <script type="module" src="/main.js"></script>
+</body>
+</html>
+
+import { WhopAPI } from "@whop/api";
+
+const coin = document.getElementById('coin');
+const resultText = document.getElementById('result');
+const flipBtn = document.getElementById('flipBtn');
+
+// Initialize Whop API
+const whop = new WhopAPI({
+  appId: import.meta.env.VITE_WHOP_APP_ID, // Set in Vercel Env
+});
+
+async function chargeAndFlip() {
+  try {
+    // Example: $1 fee
+    const payment = await whop.payments.create({
+      amount: 100, // cents
+      currency: "USD",
+      description: "Coin Flip Entry Fee",
+      split: [
+        { recipient: "me", percentage: 50 },
+        { recipient: "community", percentage: 50 }
+      ],
+    });
+
+    if (!payment.success) {
+      alert("Payment failed. Try again.");
+      return;
+    }
+
+    // Animate coin flip
+    coin.classList.add("flip");
+    resultText.textContent = "Flipping...";
+
+    setTimeout(() => {
+      coin.classList.remove("flip");
+      const random = Math.random() < 0.5 ? "Heads" : "Tails";
+      coin.textContent = random === "Heads" ? "H" : "T";
+      resultText.textContent = `Winner: ${random}`;
+    }, 2000);
+  } catch (err) {
+    console.error(err);
+    alert("Error starting game.");
+  }
+}
+
+flipBtn.addEventListener("click", chargeAndFlip);
+
+# Whop Coin Flip MVP
+
+A simple coin flip betting app for Whop iframe apps.
+
+## Features
+- Single-player coin flip
+- $1 entry fee (configurable)
+- Animated coin flip
+- Whop SDK payments with 50/50 revenue split
+
+## Setup
+
+1. Create a `.env` file:
+```
+VITE_WHOP_APP_ID=your-whop-app-id
+```
+
+2. Deploy on Vercel using this repo.
+
+3. Add the live URL to your Whop Iframe App.
+
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  height: 100vh;
+  background-color: #1a1a1a;
+  color: white;
+  font-family: Arial, sans-serif;
+}
+
+#coin {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  background: gold;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 2em;
+  margin-bottom: 20px;
+  transition: transform 2s;
+}
+
+.flip {
+  transform: rotateY(1080deg);
+}
+
+button {
+  padding: 10px 20px;
+  background: #ffcc00;
+  border: none;
+  border-radius: 10px;
+  font-size: 1.2em;
+  cursor: pointer;
+}
+
