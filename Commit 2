@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Whop Coin Flip MVP</title>
+<style>
+  body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    height: 100vh;
+    background-color: #1a1a1a;
+    color: white;
+    font-family: Arial, sans-serif;
+  }
+  #coin {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background: gold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 3em;
+    margin-bottom: 20px;
+    transition: transform 2s;
+    user-select: none;
+  }
+  .flip {
+    transform: rotateY(1080deg);
+  }
+  button {
+    padding: 10px 20px;
+    background: #ffcc00;
+    border: none;
+    border-radius: 10px;
+    font-size: 1.2em;
+    cursor: pointer;
+  }
+  #result {
+    margin-top: 20px;
+    font-size: 1.2em;
+  }
+</style>
+</head>
+<body>
+  <h1>Whop Coin Flip MVP</h1>
+  <div id="coin">?</div>
+  <button id="flipBtn">Flip Coin ($1)</button>
+  <p id="result"></p>
+
+  <!-- Whop SDK CDN -->
+  <script src="https://cdn.whop.com/sdk/whop-api.min.js"></script>
+
+  <script>
+    // === EDIT THIS: your Whop App ID here ===
+    const WHOP_APP_ID = 'YOUR_WHOP_APP_ID';
+
+    const coin = document.getElementById('coin');
+    const resultText = document.getElementById('result');
+    const flipBtn = document.getElementById('flipBtn');
+
+    // Initialize Whop API from CDN global
+    const whop = new WhopAPI({ appId: WHOP_APP_ID });
+
+    async function chargeAndFlip() {
+      flipBtn.disabled = true;
+      resultText.textContent = "";
+
+      try {
+        // Charge $1 entry fee, split 50/50 between you and community owner
+        const payment = await whop.payments.create({
+          amount: 100, // in cents
+          currency: "USD",
+          description: "Coin Flip Entry Fee",
+          split: [
+            { recipient: "me", percentage: 50 },
+            { recipient: "community", percentage: 50 }
+          ],
+        });
+
+        if (!payment.success) {
+          alert("Payment failed. Please try again.");
+          flipBtn.disabled = false;
+          return;
+        }
+
+        // Animate coin flip
+        coin.classList.add("flip");
+        resultText.textContent = "Flipping...";
+
+        setTimeout(() => {
+          coin.classList.remove("flip");
+          const random = Math.random() < 0.5 ? "Heads" : "Tails";
+          coin.textContent = random === "Heads" ? "H" : "T";
+          resultText.textContent = `Winner: ${random}`;
+          flipBtn.disabled = false;
+        }, 2000);
+
+      } catch (err) {
+        console.error(err);
+        alert("Error starting the game. Try again.");
+        flipBtn.disabled = false;
+      }
+    }
+
+    flipBtn.addEventListener("click", chargeAndFlip);
+  </script>
+</body>
+</html>
